@@ -23,57 +23,77 @@ import java.util.List;
  * @author Jia Hong
  */
 public class MouseUtil {
+    
+	//Method to slide a single card back to its original position
+	public static void slideBack(Card card) {
+	    try {
+	        double sourceX = card.getLayoutX() + card.getTranslateX();
+	        double sourceY = card.getLayoutY() + card.getTranslateY();
+	        double targetX = card.getLayoutX();
+	        double targetY = card.getLayoutY();
 
-    public static void slideBack(Card card) {
-        double sourceX = card.getLayoutX() + card.getTranslateX();
-        double sourceY = card.getLayoutY() + card.getTranslateY();
-        double targetX = card.getLayoutX();
-        double targetY = card.getLayoutY();
+	        animateCardMovement(card, sourceX, sourceY,
+	                targetX, targetY, Duration.millis(150), e -> {
+	                    card.getDropShadow().setRadius(2);
+	                    card.getDropShadow().setOffsetX(0);
+	                    card.getDropShadow().setOffsetY(0);
+	                });
+	    } catch (NullPointerException e) {
+	    	// Handle the exception: Card object is null, cannot slide back
+        	System.err.println("Error sliding back card: " + e.getMessage());
+	    }
+	}
+    
+	// Method to slide a list of cards back to their original positions
+	public static void slidesBack(List<Card> cards) {
+	    for (Card card : cards) {
+	        try {
+	            slideBack(card);
+	        } catch (NullPointerException e) {
+	        	// Handle the exception: Card object is null, cannot slide back
+	            // Log the error and continue with the next card:
+	        	System.err.println("Error sliding back card: " + e.getMessage());
+	            continue;
+	        }
+	    }
+	}
 
-        animateCardMovement(card, sourceX, sourceY,
-                targetX, targetY, Duration.millis(150), e -> {
-                    card.getDropShadow().setRadius(2);
-                    card.getDropShadow().setOffsetX(0);
-                    card.getDropShadow().setOffsetY(0);
-                });
-    }
+	
+	public static void slideToDest(List<Card> cardsToSlide, Pile destPile) {
+	    if (cardsToSlide == null)
+	        return;
 
-    public static void slidesBack(List<Card> cards) {
-        for (Card card : cards) {
-            slideBack(card);
-        }
-    }
+	    try {
+	        double destCardGap = destPile.getCardGap();
+	        double targetX;
+	        double targetY;
 
-    public static void slideToDest(List<Card> cardsToSlide, Pile destPile) {
-        if (cardsToSlide == null)
-            return;
-        double destCardGap = destPile.getCardGap();
-        double targetX;
-        double targetY;
+	        if (destPile.isEmpty()) {
+	            targetX = destPile.getLayoutX();
+	            targetY = destPile.getLayoutY();
+	        } else {
+	            targetX = destPile.getTopCard().getLayoutX();
+	            targetY = destPile.getTopCard().getLayoutY();
+	        }
 
-        if (destPile.isEmpty()) {
-            targetX = destPile.getLayoutX();
-            targetY = destPile.getLayoutY();
-        } else {
-            targetX = destPile.getTopCard().getLayoutX();
-            targetY = destPile.getTopCard().getLayoutY();
-        }
+	        for (int i = 0; i < cardsToSlide.size(); i++) {
+	            Card currentCard = cardsToSlide.get(i);
+	            double sourceX = currentCard.getLayoutX() + currentCard.getTranslateX();
+	            double sourceY = currentCard.getLayoutY() + currentCard.getTranslateY();
 
-        for (int i = 0; i < cardsToSlide.size(); i++) {
-            Card currentCard = cardsToSlide.get(i);
-            double sourceX = currentCard.getLayoutX() + currentCard.getTranslateX();
-            double sourceY = currentCard.getLayoutY() + currentCard.getTranslateY();
-
-            animateCardMovement(currentCard, sourceX, sourceY, targetX,
-                    targetY + ((destPile.isEmpty() ? i : i + 1) * destCardGap), Duration.millis(150),
-                    e -> {
-                        currentCard.moveToPile(destPile);
-                        currentCard.getDropShadow().setRadius(2);
-                        currentCard.getDropShadow().setOffsetX(0);
-                        currentCard.getDropShadow().setOffsetY(0);
-                    });
-        }
-    }
+	            animateCardMovement(currentCard, sourceX, sourceY, targetX,
+	                    targetY + ((destPile.isEmpty() ? i : i + 1) * destCardGap), Duration.millis(150),
+	                    e -> {
+	                        currentCard.moveToPile(destPile);
+	                        currentCard.getDropShadow().setRadius(2);
+	                        currentCard.getDropShadow().setOffsetX(0);
+	                        currentCard.getDropShadow().setOffsetY(0);
+	                    });
+	        }
+	    } catch (NullPointerException e) {
+	        // Handle the exception
+	    }
+	}
 
     private static void animateCardMovement(
             Card card, double sourceX, double sourceY,

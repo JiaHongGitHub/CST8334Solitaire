@@ -67,6 +67,7 @@ public class Pile extends Pane {
     }
     //lays out a Card object in the pile according to its position and size
     private void layoutCard(Card card) {
+    	//The getLayoutX() and getLayoutY() methods get the current layout position of the card
         card.relocate(card.getLayoutX() + card.getTranslateX(), card.getLayoutY() + card.getTranslateY());
         card.setTranslateX(0);
         card.setTranslateY(0);

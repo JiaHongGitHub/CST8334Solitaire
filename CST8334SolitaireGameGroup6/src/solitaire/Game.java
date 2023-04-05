@@ -227,6 +227,9 @@ public class Game extends Pane {
 
     public void refillStockFromDiscard() {
         stockPile.clear();
+        /*This puts the cards back in their original order, 
+         * so that they can be added to the stockPile in the correct sequence.
+         */
         Collections.reverse(discardPile.getCards());
         for (Card card : discardPile.getCards()) {
             stockPile.addCard(card);
@@ -332,20 +335,6 @@ public class Game extends Pane {
             	Platform.exit();
             }
         });
-//        
-//      Button newGameBtn = new Button("Play Tetris");
-//      //restartBtn.setStyle("-fx-font: 18 arial; -fx-base: #666666;");
-//      newGameBtn.setStyle("-fx-font: 16 arial; -fx-background-color: #ffffff; -fx-background-radius: 20; -fx-text-fill: #000000;");
-//
-//      newGameBtn.setLayoutX(550); // X coordinate
-//      newGameBtn.setLayoutY(700); // Y coordinate
-//      getChildren().add(newGameBtn);
-//      newGameBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-//          @Override
-//          public void handle(MouseEvent e) {
-//              //restart();
-//          }
-//      });
 
         for (int i = 0; i < 4; i++) {
             Pile foundationPile = new Pile(Pile.PileType.FOUNDATION, "Foundation " + i, FOUNDATION_GAP);
@@ -370,9 +359,13 @@ public class Game extends Pane {
     }
 
     public void dealCards() {
+    	//the index of the tableau pile that the current card will be added to
         int numberOfPile = 0;
+        //the index of the current card in the deck
         int numberOfCard = 0;
+        //index of the first tableau pile
         int startPile = 0;
+        //the number of cards that will be dealt to the tableau piles
         int countOfCardsToDeal = 27;
         int countOfPiles = 7;
 
@@ -390,7 +383,10 @@ public class Game extends Pane {
                     numberOfPile = startPile;
                 }
             }
-
+            
+            /*If numberOfPile is equal to startPile + 1, or if numberOfCard is equal to countOfCardsToDeal, 
+             * flip the card using the flip() method. This flips over the first card in each tableau pile and the last card in the stock pile
+             */
             if (numberOfPile == startPile + 1 || numberOfCard == countOfCardsToDeal)
                 card.flip();
 

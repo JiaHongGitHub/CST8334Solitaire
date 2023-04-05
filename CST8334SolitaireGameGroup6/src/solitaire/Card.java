@@ -37,7 +37,7 @@ public class Card extends ImageView {
         
 
         backFace = cardBackImage;
-        frontFace = cardFaceImages.get(getShortName());
+        frontFace = cardFaceImages.get(getShortName());//get Objectkey to get image, cardFaceImages is a Map
         //If faceDown is true, then the backFace image is displayed, otherwise, the frontFace image is displayed
         setImage(faceDown ? backFace : frontFace);
         setEffect(dropShadow);
@@ -87,13 +87,6 @@ public class Card extends ImageView {
         }
     }
 
-//    public void autoflip() {
-//        if(this.getContainingPile().getTopCard() != null &&
-//                this.getContainingPile().getPileType().equals(Pile.PileType.TABLEAU) &&
-//                !this.getContainingPile().getTopCard().isFaceDown()) {
-//            this.getContainingPile().getTopCard().flip();
-//        }
-//    }
 
     public void flip() {
         faceDown = !faceDown;
@@ -128,22 +121,38 @@ public class Card extends ImageView {
         return card1.getSuit() == card2.getSuit();
     }
 
+//    public static List<Card> createNewDeck() {
+//
+//        List<Card> result = new ArrayList<>();
+//        for (int suit = 1; suit < 5; suit++) {
+//            for (int rank = 1; rank < 14; rank++) {
+//                result.add(new Card(suit, rank, true));
+//            }
+//        }
+//        Collections.shuffle(result);
+//        return result;
+//    }
+    
     public static List<Card> createNewDeck() {
-
         List<Card> result = new ArrayList<>();
-        for (int suit = 1; suit < 5; suit++) {
-            for (int rank = 1; rank < 14; rank++) {
-                result.add(new Card(suit, rank, true));
+        try {
+            for (int suit = 1; suit < 5; suit++) {
+                for (int rank = 1; rank < 14; rank++) {
+                    result.add(new Card(suit, rank, true));
+                }
             }
+            Collections.shuffle(result);
+            Card.loadCardImages();
+        } catch (Exception e) {
+            System.err.println("An exception occurred while loading card images: " + e.getMessage());
+            e.printStackTrace();
         }
-        Collections.shuffle(result);
         return result;
     }
 
     public static void loadCardImages() {
-        //cardBackImage = new Image("resources/card_images/card_back.png");
-    	cardBackImage = new Image("resources/card_images/cardback.jpg", 100, 150, true, true);
-
+      
+        cardBackImage = new Image("resources/card_images/cardback.jpg", 100, 150, true, true);
 
         String suitName = "";
         for (int suit = 1; suit < 5; suit++) {
@@ -165,11 +174,16 @@ public class Card extends ImageView {
                 String cardName = suitName + rank;
                 String cardId = "S" + suit + "R" + rank;
                 String imageFileName = "resources/card_images/" + cardName + ".png";
-                //cardFaceImages.put(cardId, new Image(imageFileName));
-                cardFaceImages.put(cardId, new Image(imageFileName, 100, 145, true, true));
-
+                try {
+                   
+                    cardFaceImages.put(cardId, new Image(imageFileName, 100, 145, true, true));
+                } catch (Exception e) {
+                    System.err.println("An exception occurred while loading card image: " + imageFileName + " - " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         }
     }
+
 
 }
