@@ -15,15 +15,22 @@ import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.*;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.application.Application;
 import javafx.stage.Window;
+import solitaire.Pile.PileType;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
+import solitaire.Pile;
+import javafx.scene.text.Font;
+import javafx.scene.paint.Color;
 
 /**
  * This is the controller class that consists all the method to play the game
@@ -31,7 +38,7 @@ import java.util.List;
  */
 public class Game extends Pane {
 
-    private List<Card> deck;
+	private List<Card> deck;
 
     private Pile stockPile;
     private Pile discardPile;
@@ -45,14 +52,62 @@ public class Game extends Pane {
     private static double FOUNDATION_GAP = 0;
     private static double TABLEAU_GAP = 30;
     private static double HIDDEN_GAP = 0;
+    
+    private int numMoves = 0;  //keeps track of the number of moves made by the player
+    private Score score; //instance of the 'Score' class, which keeps track of the game score.
+     
+
+    private static Game instance; //declares a private static variable
 
     public Game() {
-        deck = Card.createNewDeck();
+       deck = Card.createNewDeck();
         initPiles();
         dealCards();
+        //creates a new instance of the Score class and assigns it to the score variable
+        score = new Score(numMoves, discardPile);
+        //call displayScore() on the score object to display the current score of the game
+        score.displayScore();
     }
 
-    private EventHandler<MouseEvent> onMouseClickedHandler = e -> {
+    /**
+     * Returns the singleton instance of the Game class.
+     * If the instance has not yet been created, this method creates it in a thread-safe way.
+     * @return The singleton instance of the Game class.
+     */
+    public static Game getInstance() {
+        if (instance == null) {
+            synchronized (Game.class) {
+                if (instance == null) {
+                    instance = new Game();
+                }
+            }
+        }
+        return instance;
+    }
+
+    /**
+     * Initializes the game.
+     * This method sets up the game state, including creating a new deck of cards, initializing the piles,
+     * and dealing the cards. It should be called once at the beginning of each game.
+     */
+    public void initialize() {
+    }
+    
+    
+ // a method to update the score
+    public void updateScore(int newScore) {
+        if (score != null) {
+            score.setCurrentScore(newScore);
+        }
+    }
+    
+//    public void displayScore() {
+//        if (score != null) {
+//            score.displayScore();
+//        }
+//    }
+
+	private EventHandler<MouseEvent> onMouseClickedHandler = e -> {
         Card card = (Card) e.getSource();
         /*The event handler first checks if the mouse click is a double click 
          * and if the clicked card is the top card of its containing pile 
@@ -66,6 +121,7 @@ public class Game extends Pane {
             if (pileToMove != null) {
                 draggedCards.add(card);
                 handleValidMove(card, pileToMove);
+                numMoves++; //score
             }
             draggedCards.clear();
             return;
@@ -85,9 +141,23 @@ public class Game extends Pane {
         }
     };
 
+	private Card[] cards;
+
     private EventHandler<MouseEvent> stockReverseCardsHandler = e -> {
         if (stockPile.isEmpty()) {
-            refillStockFromDiscard();
+//            refillStockFromDiscard();
+        	List<Card> cardsToMove = new ArrayList<>(discardPile.getCards());
+        	for (Card card : cardsToMove) {
+                card.flip();
+                card.moveToPile(stockPile);
+            }
+            discardPile.clear();
+            Collections.shuffle(deck);
+            for (Card card : deck) {
+                stockPile.addCard(card);
+            }
+            System.out.println("Reset stock pile");
+       
         }
     };
     /* retrieves the x and y coordinates of the mouse press event using 
@@ -195,7 +265,7 @@ public class Game extends Pane {
         }
     }
 
-    public boolean isGameWon() {
+	public boolean isGameWon() {
         int s = 0;
         for (Pile pile: foundationPiles) {
             if (pile.numOfCards() == 13) s++;
@@ -291,11 +361,67 @@ public class Game extends Pane {
         System.out.println(msg);
         MouseUtil.slideToDest(draggedCards, destPile);
         draggedCards.clear();
-        if (destPile.equals(Pile.PileType.FOUNDATION)) {
+//        if (destPile.equals(Pile.PileType.FOUNDATION)) {
+        if (destPile.getPileType().equals(Pile.PileType.FOUNDATION)) {
             if (isGameWon()) showModal("Congratulations!");
+
         }
+        
+     // Searches through the tableau piles to find the pile that contains the specified card.
+     // If the card is found, sets the sourcePile variable to the pile containing the card.
+        Pile sourcePile = null;
+        for (Pile pile : tableauPiles) {
+            if (pile.getTopCard() != null && pile.getTopCard().equals(card)) {
+                sourcePile = pile;
+                break;
+            }
+        }
+        
+        /**
+        Checks if the sourcePile is null and if the top card of the discard pile equals to the card
+        being dragged. If both conditions are met, sets the sourcePile as the discard pile.
+        @param card The card being dragged
+        @param discardPile The discard pile where the card is being dragged from
+        */
+        if (sourcePile == null && discardPile != null && discardPile.getTopCard() != null && discardPile.getTopCard().equals(card)) {
+            sourcePile = discardPile;
+        }
+
+//        if (sourcePile != null && sourcePile.getPileType().equals(Pile.PileType.TABLEAU)) {
+//            score.updateScore(-5);
+//        }   
+        
+
+        
+        /**
+        Checks if the sourcePile is null and if the discard pile is not null and the top card of the discard pile
+        equals to the card being dragged. If both conditions are met, sets the sourcePile as the discard pile.
+        @param card The card being dragged
+        @param discardPile The discard pile where the card is being dragged from
+        */
+        if (sourcePile == null && discardPile != null && discardPile.getTopCard() != null && discardPile.getTopCard().equals(card)) {
+            sourcePile = discardPile;
+        }
+
+        //initialize an integer variable slideToDest to the value of 1.
+        int slideToDest = 1;
+        
+        // call a method getMoveType() on an instance of the Score class, passing in three arguments sourcePile, destPile, and slideToDest. 
+        //The returned integer value is stored in a variable moveType.
+        int moveType = score.getMoveType(sourcePile, destPile, slideToDest);
+        
+
+        
+        //updates the score based on the move that was made.
+        score.updateScore(sourcePile, destPile, draggedCards, moveType);
+        
+        //calls a method displayScore() on the same Score instance, 
+        //which displays the current score to the user.
+        score.displayScore();
+     
     }
 
+  
     private void initPiles() {
         stockPile = new Pile(Pile.PileType.STOCK, "Stock", STOCK_GAP);
         stockPile.setWhiteStrokeBackground();
@@ -314,20 +440,21 @@ public class Game extends Pane {
         //restartBtn.setStyle("-fx-font: 18 arial; -fx-base: #666666;");
         restartBtn.setStyle("-fx-font: 16 arial; -fx-background-color: #ffffff; -fx-background-radius: 20; -fx-text-fill: #000000;");
 
-        restartBtn.setLayoutX(700); // X coordinate
-        restartBtn.setLayoutY(700); // Y coordinate
+        restartBtn.setLayoutX(5); // X coordinate
+        restartBtn.setLayoutY(20); // Y coordinate
         getChildren().add(restartBtn);
         restartBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent e) {
                 restart();
+                             
             }
         });
 
-        Button exitBtn = new Button("Exit");
+        Button exitBtn = new Button("   Exit   ");
         exitBtn.setStyle("-fx-font: 16 arial; -fx-background-color: #ffffff; -fx-background-radius: 20; -fx-text-fill: #000000;");
-        exitBtn.setLayoutX(850);
-        exitBtn.setLayoutY(700);
+        exitBtn.setLayoutX(5);
+        exitBtn.setLayoutY(80);
         getChildren().add(exitBtn);
         exitBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
@@ -406,12 +533,17 @@ public class Game extends Pane {
                 BackgroundPosition.CENTER, BackgroundSize.DEFAULT)));
     }
 
+ 
+
     private void restart() {
         clearPane();
         deck = Card.createNewDeck();
         initPiles();
         dealCards();
-    }
+        score = new Score(numMoves, discardPile);//scoring
+        score.displayScore();
+        
+   }
 
     private void clearPane() {
         stockPile.clear();
@@ -419,6 +551,7 @@ public class Game extends Pane {
         foundationPiles.clear();
         tableauPiles.clear();
         this.getChildren().clear();
+        
     }
 
     private Pile possibleMove(Card card) {
@@ -432,4 +565,14 @@ public class Game extends Pane {
             }
         return null;
     }
+
+
+
+	public Score getScore() {
+		return score;
+	}
+
+	public void setScore(Score score) {
+		this.score = score;
+	}
 }

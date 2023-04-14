@@ -25,7 +25,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         Card.loadCardImages();
         Game game = new Game();
-        game.setTableBackground(new Image("resources/table/nasa.jpg",1050, 800, true, true));
+        game.setTableBackground(new Image("resources/table/nasa.jpg",WINDOW_WIDTH, WINDOW_HEIGHT, true, true));
   
 
         primaryStage.setTitle("CST8334 Group6 Solitaire");
