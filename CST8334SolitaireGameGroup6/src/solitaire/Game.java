@@ -575,4 +575,9 @@ public class Game extends Pane {
 	public void setScore(Score score) {
 		this.score = score;
 	}
+
+	public Object getTableauPiles() {
+		// TODO Auto-generated method stub
+		return tableauPiles;
+	}
 }

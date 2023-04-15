@@ -14,7 +14,7 @@ accordingly.
 */
 public class Score {
 	private int currentScore; // current score of the game
-	private Text scoreText = new Text("Score: " + currentScore); // Text object to display the score
+	public Text scoreText = new Text("Score: " + currentScore); // Text object to display the score
 	private Pane root; // the root pane of the game
 	private static final int FLIP = 0; // move types
 	private static final int TABLEAU_TO_FOUNDATION = 1;
